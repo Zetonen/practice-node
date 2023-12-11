@@ -1,0 +1,80 @@
+import { Schema, model } from "mongoose";
+import Joi from "joi";
+import { handleSaveError, preUpdate } from "./hooks.js";
+// Schema - опис що буде зберігатись в базі
+// https://mongoosejs.com/docs/validation.html
+
+const genreList = ["fantastic", "love story"];
+const releaseYearRegexp = /^\d{4}$/;
+
+const movieSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: [true, "title must be exist"],
+    },
+    director: {
+      type: String,
+      required: true,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+    genre: {
+      type: String,
+      enum: genreList,
+      required: true,
+    },
+    releaseYear: {
+      type: String,
+      match: releaseYearRegexp,
+      required: true,
+    },
+  },
+  { versionKey: false, timestamps: true }
+);
+
+movieSchema.post("save", handleSaveError);
+movieSchema.pre("findOneAndUpdate", preUpdate);
+movieSchema.post("findOneAndUpdate", handleSaveError);
+
+export const movieAddSchema = Joi.object({
+  title: Joi.string().required().messages({
+    "any.required": `"title" must be exist`,
+    "string.base": `"title" must be text`,
+  }),
+  director: Joi.string().required().messages({
+    "any.required": `"director" must be exist`,
+    "string.base": `"director" must be text`,
+  }),
+  favorite: Joi.boolean(),
+  genre: Joi.string()
+    .valid(...genreList)
+    .required(),
+  releaseYear: Joi.string().pattern(releaseYearRegexp).required(),
+});
+
+export const movieUpdateSchema = Joi.object({
+  title: Joi.string().messages({
+    "any.required": `"title" must be exist`,
+    "string.base": `"title" must be text`,
+  }),
+  director: Joi.string().messages({
+    "any.required": `"director" must be exist`,
+    "string.base": `"director" must be text`,
+  }),
+  favorite: Joi.boolean(),
+  genre: Joi.string().valid(...genreList),
+  releaseYear: Joi.string().pattern(releaseYearRegexp),
+});
+
+export const movieFavoriteSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});
+
+const Movie = model("movie", movieSchema); //створи модель Movie яка під'єднана до колекції movies( спецільно в однині) та буде працювати по схемі
+// category => categories
+// mouse => mice
+
+export default Movie;
