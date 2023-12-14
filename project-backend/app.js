@@ -1,10 +1,12 @@
 import express from "express";
 import logger from "morgan";
 import cors from "cors";
-import dotenv from "dotenv";
+import "dotenv/config";
+
+// import dotenv from "dotenv";
 import moviesRouter from "./routes/api/movies-router.js";
 
-dotenv.config();// дивиться чи є .env/ читає його построково та додає у process.env
+// dotenv.config();// дивиться чи є .env/ читає його построково та додає у process.env
 
 const app = express();
 
